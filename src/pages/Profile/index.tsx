@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import Button from '../../core/components/Button';
 import { makeRequest } from '../../core/request';
+import { InfoGithub } from '../../core/types/InfoGithub';
+import Loaders from './components/Loaders/Loaders';
+import ProfileCard from './components/ProfileCard';
 import './styles.scss';
 
 type FormState = {
@@ -25,27 +28,40 @@ const Profile = () => {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
+        setIsLoading(true);
         makeRequest({ url: `/${formData.name}` })
-            .then(response => console.log(response.data));
+            .then(Response => setInfoResponse(Response.data))
+            .finally(() => {
+                setIsLoading(false);
+            })
     }
+
+    const [infoResponse, setInfoResponse] = useState<InfoGithub>();
+
+    const [isLoading, setIsLoading] = useState(false);
 
     return (
         <form onSubmit={handleSubmit}>
-            <div className="profile-container">
-                <div>
-                    <div className="profile-title col-6">
-                        Encontre um perfil Github
-                    </div>
-                    <input
-                        value={formData.name}
-                        className="profile-text"
-                        name="name"//Atributo chamado "name" é o nome que identifica o campo 
-                        type="text"
-                        onChange={handleOnChange}
-                        placeholder="Usuário Github"
-                    />
-                    <Button text="Encontrar" />
+            <div className="profile-search">
+                <div className="profile-search-title">
+                    Encontre um perfil Github
                 </div>
+                <input
+                    value={formData.name}
+                    className="profile-search-text"
+                    name="name"//Atributo chamado "name" é o nome que identifica o campo 
+                    type="text"
+                    onChange={handleOnChange}
+                    placeholder="Usuário Github"
+                />
+                <Button text="Encontrar" />
+            </div>
+            <div className="profile-info-container">
+                {isLoading ? <Loaders /> : (
+                    infoResponse?.name && (
+                        <ProfileCard infoGithub={infoResponse} />
+                    )
+                )}
             </div>
         </form>
     )
